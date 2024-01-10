@@ -9,8 +9,15 @@
 
 log
 
+    handle_path /images/products* {
+            root * /srv/app/public/images/products
+            file_server
+        }
+
 route {
     root * /srv/app/public
+
+
     mercure {
         # Transport to use (default to Bolt)
         transport_url {$MERCURE_TRANSPORT_URL:bolt:///data/mercure.db}
