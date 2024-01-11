@@ -7,7 +7,7 @@
 
 {$CADDY_EXTRA_CONFIG}
 
-log
+log /var/log/caddy/access.log
 
     handle_path /images/products* {
             root * /srv/app/public/images/products
