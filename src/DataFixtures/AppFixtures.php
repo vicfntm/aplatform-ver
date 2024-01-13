@@ -7,13 +7,19 @@ use App\Entity\Commodity;
 use App\Entity\Media;
 use App\Entity\Price;
 use App\Entity\Product;
+use App\Entity\User;
 use App\Enums\MediaTypes;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Enums\CommodityOperationType;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
+
+    public function __construct (private readonly UserPasswordHasherInterface $userPasswordHasherInterface)
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -245,9 +251,28 @@ class AppFixtures extends Fixture
             $manager->persist($cat);
             $manager->flush();
         }
-//        for ($i = 0; $i < 20; $i++) {
-//        }
-//        $product = new Product();
+
+        $users = [
+            [
+            'email' => 'admin@testuser.com',
+            'roles' => ['ROLE_USER', 'ROLE_ADMIN'],
+            'password' => 'secretP@sswd!1'
+            ],
+            [
+                'email' => 'usualuser@testuser.com',
+                'roles' => ['ROLE_USER'],
+                'password' => 'secretP@sswd!2'
+            ]
+        ];
+
+
+        foreach ($users as $user){
+            $ue = new User();
+            $ue->setEmail($user['email']);
+            $ue->setRoles($user['roles']);
+            $ue->setPassword($this->userPasswordHasherInterface->hashPassword($ue, $user['password']));
+            $manager->persist($ue);
+        }
 
         $manager->flush();
     }
