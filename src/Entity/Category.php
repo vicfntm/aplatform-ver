@@ -25,7 +25,7 @@ use Symfony\Component\Uid\Ulid;
 #[ApiResource(
     operations: [
         new GetCollection(),
-        new Post( description: new Description("для використання потрібен JWT"),  security: "is_granted('ROLE_ADMIN')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
         new Get(),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
         new Put(security: "is_granted('ROLE_ADMIN')"),

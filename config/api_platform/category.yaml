@@ -1,8 +1,0 @@
-App\Entity\Category:
-    attributes:
-        normalization_context:
-            groups: ['category.read']
-    collectionOperations: []
-    itemOperations:
-        get:
-            method: 'GET'
