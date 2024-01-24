@@ -29,12 +29,12 @@
         "symfony/runtime": "6.3.*",
         "symfony/security-bundle": "6.3.*",
         "symfony/serializer": "6.3.*",
+        "symfony/translation": "6.3.*",
         "symfony/twig-bundle": "6.3.*",
         "symfony/uid": "6.3.*",
         "symfony/validator": "6.3.*",
         "symfony/yaml": "6.3.*",
-        "vich/uploader-bundle": "^2.2",
-      "ext-http": "*"
+        "vich/uploader-bundle": "^2.2"
     },
     "config": {
         "allow-plugins": {

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -12,6 +13,7 @@ use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\RequestBody;
 use App\Controller\CommodityAction;
+use App\Enums\CommodityOperationType;
 use App\Repository\CommodityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,6 +23,7 @@ use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 #[
     ORM\Entity(repositoryClass: CommodityRepository::class)]
@@ -28,35 +31,35 @@ use Symfony\Component\Uid\Ulid;
     operations: [
         new Get(security: "is_granted('ROLE_ADMIN')"),
         new GetCollection(security: "is_granted('ROLE_ADMIN')"),
-//        new GetCollection(
-//            routePrefix: '/public',
-//        ),
+        //        new GetCollection(
+        //            routePrefix: '/public',
+        //        ),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
         new Post(security: "is_granted('ROLE_ADMIN')"),
         new Post(
             routePrefix: '/public', controller: CommodityAction::class, openapi: new Operation(
+            description: "Метод використовується для збору інформації про товари, з якими взаємодіяв споживач. Передається product id. Запит являє собою масив обʼєктів. Кількість елементів масиву визначається фронтендом.",
             requestBody: new RequestBody(
-                             description: new Description(
-                                              'Метод використовується для збору інформації про товари в кошику чи переглянуті, на які ще не оформлене замовлення. Передається масив обʼєктів, з ключами кількості штук та референсом до ресурса, з якого проводиться резервування одиниці (CommoditySource) '
-                                          ),
-                             content:     new \ArrayObject(
-                                              [
-                                                  'application/ld+json' => [
 
-                                                      'schema' => [
-                                                          'type'  => 'array',
-                                                          'items' => [
-                                                              'properties' => [
-                                                                  'product' => ['type' => 'string']
-//                                                                  'amount'          => ['type' => 'integer'],
-//                                                                  'CommoditySource' => ['type' => 'string'],
+                             content: new \ArrayObject(
+                                          [
+                                              'application/ld+json' => [
+
+                                                  'schema' => [
+                                                      'type'  => 'array',
+                                                      'items' => [
+                                                          'properties' => [
+                                                              'product' => [
+                                                                  'type'    => 'string',
+                                                                  'example' => '01HM19QGNNMCD3NXFAAQRYC1HS',
                                                               ],
                                                           ],
                                                       ],
                                                   ],
-                                              ]
+                                              ],
+                                          ]
 
-                                          )
+                                      )
                          )
         )
         ),
@@ -66,6 +69,7 @@ use Symfony\Component\Uid\Ulid;
 )]
 class Commodity
 {
+
     #[ORM\Id]
     #[ORM\Column(type: UlidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -75,15 +79,30 @@ class Commodity
 
     #[ORM\Column(length: 255)]
     #[Groups(['commodity.write', 'product.read', 'commodity.read', 'public.order.read'])]
+    #[NotNull]
+    #[ApiProperty(
+        description: "commodity є відображенням дії по руху ТМЦ в системі і обовʼязково мають певний тип", openapiContext: [
+        'type' => 'string',
+        'enum' => [
+            CommodityOperationType::IMPORT->name,
+            CommodityOperationType::PREORDER->name,
+            CommodityOperationType::SOLD->name,
+            CommodityOperationType::RETURN->name,
+        ],
+        'example' => CommodityOperationType::IMPORT->name
+    ]
+    )]
     private ?string $operationType = null;
 
     #[ORM\Column]
     #[Groups(['commodity.write', 'product.read', 'commodity.read', 'public.order.read'])]
+    #[NotNull]
     private ?int $amount = null;
 
     #[ORM\ManyToOne(inversedBy: 'commodities')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['commodity.write', 'commodity.read', 'public.order.read'])]
+    #[NotNull]
     private ?Product $product = null;
 
     #[ORM\OneToMany(mappedBy: 'commodity', targetEntity: Price::class, cascade: ['persist'], orphanRemoval: true)]
@@ -173,7 +192,7 @@ class Commodity
 
     public function addPrice(Price $price): static
     {
-        if (!$this->price->contains($price)) {
+        if (! $this->price->contains($price)) {
             $this->price->add($price);
             $price->setCommodity($this);
         }

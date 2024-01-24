@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\NumericFilter;
 use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -12,20 +13,29 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
+use ApiPlatform\OpenApi\Model\Operation;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use phpDocumentor\Reflection\DocBlock\Description;
+use phpDocumentor\Reflection\Types\Context;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Ulid;
-
+use Symfony\Component\Validator\Constraints\NotNull;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(),
-        new Post(security: "is_granted('ROLE_ADMIN')"),
+        new GetCollection(
+            openapi: new Operation(
+                         description: "Отримання довідника категорій. Категорії мають різний рівень(level), який визначає порядок показу та ієрархію - вкладеність. Найстарші категорії мають рівень 0, вкладені категорії можуть бути 1 і більше. Категорії рівня 1 і більше мають відношення до більш старших категорій з рівнем на 1 менше. Категорія 1 має звʼязок з категорією 0, категорія рівня 2 має звʼязок з відповідною категорією 1.",
+                     ),
+        ),
+        new Post(
+            openapi:  new Operation(description: "Операція вимагає авторизації на рівні адміністратора"),
+            security: "is_granted('ROLE_ADMIN')"
+        ),
         new Get(),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
         new Put(security: "is_granted('ROLE_ADMIN')"),
@@ -35,8 +45,10 @@ use Symfony\Component\Uid\Ulid;
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['isActive'])]
 #[ApiFilter(NumericFilter::class, properties: ['level'])]
+#[UniqueEntity('categoryName')]
 class Category
 {
+
     #[ORM\Id]
     #[ORM\Column(type: UlidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -45,31 +57,65 @@ class Category
     private ?Ulid $id;
 
     #[ORM\Column(nullable: true)]
+    #[NotNull]
     #[Groups(['category.read'])]
+    #[ApiProperty(
+        description: 'рівень вкладеності категорії',
+        openapiContext: [
+            'type'    => 'integer',
+            'example' => 1,
+        ])]
     private ?int $level = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['category.read'])]
+    #[NotNull]
+    #[ApiProperty(description: 'порядок відображення категорії при видачі. Чим більше число categoryOrder тим менший приоритет у сортуванні', openapiContext: [
+        'type'    => 'integer',
+        'example' => 0,
+    ])]
     private ?int $categoryOrder = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(nullable: true)]
+    #[ApiProperty(
+        description: "поле необовʼязкове, у категорій найвищого рівня parent відсутній. Для категорій нижчого рівня поле рекомендується для використання при створенні ієрархії",
+        openapiContext: [
+            'type'    => 'string',
+            'example' => '/api/categories/01HM19QGNNMCD3NXFAAQRYC1HV',
+        ]
+    )]
     private ?self $parent = null;
 
     #[ORM\Column(length: 255)]
+    #[NotNull]
     #[Groups(['category.read'])]
+    #[ApiProperty(description: "поле має бути унікальним", openapiContext: ['type' => 'string', 'max' => 255, 'example' => 'Вишиванки ручної роботи'])]
     private ?string $categoryName = null;
 
     #[ORM\OneToMany(mappedBy: 'category', targetEntity: Product::class)]
+    #[ApiProperty(
+        description: "поле необовʼязкове, аналогічну операцію зручніше проводити при ручному вводі продуктів",
+        openapiContext: [
+            'type'    => 'array',
+            'example' => ['/api/products/01HM19QGNNMCD3NXFAAQRYC1HD', '/api/products/01HM19QGNNMCD3NXFAAQRYC1HV'],
+        ])]
     private Collection $products;
 
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
     #[Groups(['category.read'])]
+    #[ApiProperty(
+        description: "поле необовʼязкове і для використання у створенні батьківських категорій не рекомендується. Аналогічну операцію зручніше проводити при створенні дочірніх категорій, використовуючи поле parent ",
+        openapiContext: [
+            'type'    => 'array',
+            'example' => ['/api/categories/01HM19QGNNMCD3NXFAAQRYC1HV'],
+        ]
+    )]
     private Collection $children;
 
     #[ORM\Column]
     #[Groups(['category.read', 'category.write'])]
-    private ?bool $isActive = null;
+    private bool $isActive = true;
 
     public function __construct()
     {
@@ -140,7 +186,7 @@ class Category
 
     public function addProduct(Product $product): static
     {
-        if (!$this->products->contains($product)) {
+        if (! $this->products->contains($product)) {
             $this->products->add($product);
             $product->setCategory($this);
         }
@@ -170,7 +216,7 @@ class Category
 
     public function addChild(self $child): static
     {
-        if (!$this->children->contains($child)) {
+        if (! $this->children->contains($child)) {
             $this->children->add($child);
             $child->setParent($this);
         }
@@ -190,7 +236,7 @@ class Category
         return $this;
     }
 
-    public function isIsActive(): ?bool
+    public function isIsActive(): bool
     {
         return $this->isActive;
     }

@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use App\Enums\MediaTypes;
 use App\Repository\MediaRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
@@ -31,30 +32,30 @@ use Symfony\Component\HttpFoundation\File\File;
             controller:        CreateMediaObjectAction::class,
             openapi:           new Model\Operation(
                                    requestBody: new Model\RequestBody(
-                                        content: new \ArrayObject(
-                                         [
-                                             'multipart/form-data' => [
-                                                 'schema' => [
-                                                     'type'       => 'object',
-                                                     'properties' => [
-                                                         'file'       => [
-                                                             'type'   => 'string',
-                                                             'format' => 'binary',
-                                                         ],
-                                                         'binaryType' => [
-                                                             'type' => 'string',
-                                                         ],
-                                                         'isMain'     => [
-                                                             'type' => 'boolean',
-                                                         ],
-                                                         'product' => [
-                                                             'type' => 'string'
-                                                         ]
-                                                     ],
-                                                 ],
-                                             ],
-                                         ]
-                                                 )
+                                                    content: new \ArrayObject(
+                                                                 [
+                                                                     'multipart/form-data' => [
+                                                                         'schema' => [
+                                                                             'type'       => 'object',
+                                                                             'properties' => [
+                                                                                 'file'       => [
+                                                                                     'type'   => 'string',
+                                                                                     'format' => 'binary',
+                                                                                 ],
+                                                                                 'binaryType' => [
+                                                                                     'type' => 'string',
+                                                                                 ],
+                                                                                 'isMain'     => [
+                                                                                     'type' => 'boolean',
+                                                                                 ],
+                                                                                 'product'    => [
+                                                                                     'type' => 'string',
+                                                                                 ],
+                                                                             ],
+                                                                         ],
+                                                                     ],
+                                                                 ]
+                                                             )
                                                 )
                                ),
             security:          "is_granted('ROLE_ADMIN') ",
@@ -68,6 +69,7 @@ use Symfony\Component\HttpFoundation\File\File;
 )]
 class Media
 {
+
     #[ORM\Id]
     #[ORM\Column(type: UlidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -77,10 +79,25 @@ class Media
 
     #[ORM\Column(length: 255)]
     #[Groups(['media.write', 'media.read', 'product.read', 'commodity.read', 'public.order.read'])]
+    #[Assert\NotNull]
+    #[ApiProperty(
+        openapiContext: [
+            'type'    => 'string',
+            'enum'    => [MediaTypes::JPEG->name, MediaTypes::MP4->name, MediaTypes::MPEG->name],
+            'example' => MediaTypes::JPEG->name,
+        ]
+    )]
     private ?string $binaryType = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['media.write', 'media.read', 'product.read', 'commodity.read', 'public.order.read'])]
+    #[ApiProperty(
+        description: "відносне посилання на публічний доступ до медіаресурсу",
+        openapiContext: [
+            'type' => 'string',
+            'example' => '/images/products/82-6506f99c2f691802579777.jpg'
+        ]
+    )]
     private ?string $binarySource = null;
 
     #[ORM\ManyToOne(targetEntity: Product::class)]
@@ -90,12 +107,14 @@ class Media
     private ?Product $product = null;
 
     #[ORM\Column]
-    #[ApiProperty]
+    #[ApiProperty(
+        description: "індикатор, що вказує, чи є медіаконтент таким, що демонструється як головне зображення-відео на сторінці"
+    )]
     #[Groups(['media.write', 'media.read', 'commodity.read', 'product.read', 'public.order.read'])]
     private ?bool $isMain = null;
 
     #[ApiProperty(types: ['https://schema.org/contentUrl'])]
-    #[Groups(['media.read', 'media.read', 'public.order.read'])]
+//    #[Groups(['media.read', 'media.read', 'public.order.read'])]
     public ?string $contentUrl = null;
 
     #[Vich\UploadableField(mapping: "products", fileNameProperty: "binarySource")]
