@@ -18,6 +18,7 @@ use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\OrderBy;
 use phpDocumentor\Reflection\Types\Context;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -29,7 +30,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
     operations: [
         new GetCollection(
             openapi: new Operation(
-                         description: "Отримання довідника категорій. Категорії мають різний рівень(level), який визначає порядок показу та ієрархію - вкладеність. Найстарші категорії мають рівень 0, вкладені категорії можуть бути 1 і більше. Категорії рівня 1 і більше мають відношення до більш старших категорій з рівнем на 1 менше. Категорія 1 має звʼязок з категорією 0, категорія рівня 2 має звʼязок з відповідною категорією 1.",
+                         description: "Отримання довідника категорій. Категорії мають різний рівень(level), який визначає ієрархію - вкладеність. Найстарші категорії мають рівень 0, вкладені категорії у мають відповідно рівень 1,2 і т.д.",
                      ),
         ),
         new Post(
@@ -42,6 +43,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
         new Patch(security: "is_granted('ROLE_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['category.read']],
+    order: ['categoryOrder', 'id', 'children.categoryOrder']
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['isActive'])]
 #[ApiFilter(NumericFilter::class, properties: ['level'])]
@@ -95,7 +97,7 @@ class Category
 
     #[ORM\OneToMany(mappedBy: 'category', targetEntity: Product::class)]
     #[ApiProperty(
-        description: "поле необовʼязкове, аналогічну операцію зручніше проводити при ручному вводі продуктів",
+        description: "поле необовʼязкове, аналогічну операцію зручніше проводити при ручному вводі продуктів (POST /api/products)",
         openapiContext: [
             'type'    => 'array',
             'example' => ['/api/products/01HM19QGNNMCD3NXFAAQRYC1HD', '/api/products/01HM19QGNNMCD3NXFAAQRYC1HV'],
@@ -105,7 +107,7 @@ class Category
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: self::class)]
     #[Groups(['category.read'])]
     #[ApiProperty(
-        description: "поле необовʼязкове і для використання у створенні батьківських категорій не рекомендується. Аналогічну операцію зручніше проводити при створенні дочірніх категорій, використовуючи поле parent ",
+        description: "Може бути використано для задання усіх вкладених категорій, але це не рекомендовано. Аналогічну операцію зручніше проводити при створенні дочірніх категорій, використовуючи поле parent",
         openapiContext: [
             'type'    => 'array',
             'example' => ['/api/categories/01HM19QGNNMCD3NXFAAQRYC1HV'],

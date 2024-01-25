@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -11,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Validator\Constraints\NotNull;
 
 #[ORM\Entity(repositoryClass: PriceRepository::class)]
 #[ApiResource(
@@ -33,11 +35,26 @@ class Price
 
     #[ORM\Column]
     #[Groups(['read', 'price.write', 'product.read', 'commodity.read'])]
+    #[ApiProperty(
+        description: "первинна форма передачі - зберігання є цілі числа (ціна у копійках)",
+        openapiContext: [
+            'type' => 'integer',
+            'example' => 10000
+        ]
+    )]
     private ?int $price = null;
 
     #[ORM\ManyToOne(inversedBy: 'price')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['price.read', 'price.write'])]
+    #[NotNull]
+    #[ApiProperty(
+        description: "посилання на відповідну сутність commodity",
+        openapiContext: [
+            'type' => 'string',
+            'example' => '/api/commodities/01HM19QGNBCTR5MNX3W3K3N7WG'
+        ]
+    )]
     private ?Commodity $commodity = null;
 
     public function getId(): ?Ulid

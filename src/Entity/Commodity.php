@@ -29,40 +29,43 @@ use Symfony\Component\Validator\Constraints\NotNull;
     ORM\Entity(repositoryClass: CommodityRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_ADMIN')"),
-        new GetCollection(security: "is_granted('ROLE_ADMIN')"),
-        //        new GetCollection(
-        //            routePrefix: '/public',
-        //        ),
+        new Get(
+            security: "is_granted('ROLE_ADMIN')"
+        ),
+        new GetCollection(
+            openapi: new Operation(
+                         description: "Commodity передає відносини товарооббігу, у контексті партій та продуктів. Кожна нова одиниця, що зʼявляється на залишку первинно вводиться за допомогою операції імпорту (створення commodity зі operationType = IMPORT  ). Кожен рух від складу до споживача також фіксується створенням нового запису про зміни стану commodity",
+                     ), security: "is_granted('ROLE_ADMIN')",
+        ),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
         new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Post(
-            routePrefix: '/public', controller: CommodityAction::class, openapi: new Operation(
-            description: "Метод використовується для збору інформації про товари, з якими взаємодіяв споживач. Передається product id. Запит являє собою масив обʼєктів. Кількість елементів масиву визначається фронтендом.",
-            requestBody: new RequestBody(
-
-                             content: new \ArrayObject(
-                                          [
-                                              'application/ld+json' => [
-
-                                                  'schema' => [
-                                                      'type'  => 'array',
-                                                      'items' => [
-                                                          'properties' => [
-                                                              'product' => [
-                                                                  'type'    => 'string',
-                                                                  'example' => '01HM19QGNNMCD3NXFAAQRYC1HS',
-                                                              ],
-                                                          ],
-                                                      ],
-                                                  ],
-                                              ],
-                                          ]
-
-                                      )
-                         )
-        )
-        ),
+//        new Post(
+//            routePrefix: '/public', controller: CommodityAction::class, openapi: new Operation(
+//            description: "Метод використовується для збору інформації про товари, з якими взаємодіяв споживач. Передається product id. Запит являє собою масив обʼєктів. Кількість елементів масиву визначається фронтендом.",
+//            requestBody: new RequestBody(
+//
+//                             content: new \ArrayObject(
+//                                          [
+//                                              'application/ld+json' => [
+//
+//                                                  'schema' => [
+//                                                      'type'  => 'array',
+//                                                      'items' => [
+//                                                          'properties' => [
+//                                                              'product' => [
+//                                                                  'type'    => 'string',
+//                                                                  'example' => '01HM19QGNNMCD3NXFAAQRYC1HS',
+//                                                              ],
+//                                                          ],
+//                                                      ],
+//                                                  ],
+//                                              ],
+//                                          ]
+//
+//                                      )
+//                         )
+//        )
+//        ),
     ],
     normalizationContext: ['groups' => ['commodity.read']],
     denormalizationContext: ['groups' => ['commodity.write']],
@@ -82,14 +85,14 @@ class Commodity
     #[NotNull]
     #[ApiProperty(
         description: "commodity є відображенням дії по руху ТМЦ в системі і обовʼязково мають певний тип", openapiContext: [
-        'type' => 'string',
-        'enum' => [
+        'type'    => 'string',
+        'enum'    => [
             CommodityOperationType::IMPORT->name,
             CommodityOperationType::PREORDER->name,
             CommodityOperationType::SOLD->name,
             CommodityOperationType::RETURN->name,
         ],
-        'example' => CommodityOperationType::IMPORT->name
+        'example' => CommodityOperationType::IMPORT->name,
     ]
     )]
     private ?string $operationType = null;
@@ -97,12 +100,22 @@ class Commodity
     #[ORM\Column]
     #[Groups(['commodity.write', 'product.read', 'commodity.read', 'public.order.read'])]
     #[NotNull]
+    #[ApiProperty(
+        description: "лише штуки", openapiContext: ['example' => 1, 'type' => 'integer']
+    )]
     private ?int $amount = null;
 
     #[ORM\ManyToOne(inversedBy: 'commodities')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['commodity.write', 'commodity.read', 'public.order.read'])]
     #[NotNull]
+    #[ApiProperty(
+        description: "ідентифікатор продукта, до якого належить дана commodity",
+        openapiContext: [
+            'type'    => 'string',
+            'example' => '/api/products/01HM19QGNNMCD3NXFAAQRYC1HS',
+        ]
+    )]
     private ?Product $product = null;
 
     #[ORM\OneToMany(mappedBy: 'commodity', targetEntity: Price::class, cascade: ['persist'], orphanRemoval: true)]
