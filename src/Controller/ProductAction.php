@@ -23,10 +23,10 @@ class ProductAction extends AbstractController
 
     public function __invoke(Request $request)
     {
-        $requestUri   = $request->query->get('category_id');
-        $id           = UriParser::uidParser($requestUri);
+        $requestCatId   = $request->query->get('category_id');
+//        $id           = UriParser::uidParser($requestUri);
         $categoryRepo = $this->manager->getRepository(Category::class);
-        $res          = $categoryRepo->findOneBy(['id' => $id]);
+        $res          = $categoryRepo->findOneBy(['id' => $requestCatId]);
 
         return $res->getProducts();
     }

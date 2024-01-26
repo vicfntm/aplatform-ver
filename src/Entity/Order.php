@@ -47,16 +47,18 @@ use Symfony\Component\Uid\Ulid;
                                                                                           'delivery' => [
                                                                                               'type'       => 'object',
                                                                                               'properties' => [
-                                                                                                  'transportType' => ['type' => 'string'],
-                                                                                                  'address'       => ['type' => 'string'],
+                                                                                                  'transportType' => ['type' => 'string', 'enum' => ['NOVA POSHTA'], 'example' => 'NOVA POSHTA'],
+                                                                                                  'address'       => ['type' => 'string', 'example' => '03127', 'description' => 'номер поштового відділення'],
                                                                                               ],
                                                                                           ],
                                                                                           'products' => [
                                                                                               'type'  => 'array',
                                                                                               'items' => [
                                                                                                   'properties' => [
-                                                                                                      'product' => ['type' => 'string'],
-                                                                                                      'amount'  => ['type' => 'integer'],
+                                                                                                      'product' => ['type' => 'string',
+                                                                                                          'example' => '01HM19QGN8349WS3B1666S4K6G'],
+                                                                                                      'amount'  => ['type' => 'integer',
+                                                                                                          'example' => 1],
                                                                                                   ],
                                                                                               ],
                                                                                           ],

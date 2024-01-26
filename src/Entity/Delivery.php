@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\DeliveryRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Validator\Constraints\Choice;
 
 #[ORM\Entity(repositoryClass: DeliveryRepository::class)]
 #[ApiResource(
@@ -24,9 +26,18 @@ class Delivery
     private ?Ulid $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[ApiProperty(
+        description: "має бути вказано номер відділення Нової Пошти чи іншого поштового оператора",
+        openapiContext: [
+            'type' => 'string',
+            'maxLength' => 255,
+            'example' => '32261'
+        ]
+    )]
     private ?string $address = null;
 
     #[ORM\Column(length: 30, nullable: true)]
+    #[Choice(['NOVA POSHTA'])]
     private ?string $transportCompany = null;
 
     #[ORM\OneToOne(inversedBy: 'delivery', cascade: ['persist', 'remove'])]
