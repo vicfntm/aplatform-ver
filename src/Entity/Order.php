@@ -2,20 +2,18 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\RequestBody;
 use App\Controller\OrderAction;
-use App\DTO\OrderDto;
+use App\Controller\UpdateOrderAction;
 use App\Enums\CommodityOperationType;
 use App\Repository\OrderRepository;
-use App\State\OrderProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,6 +21,7 @@ use phpDocumentor\Reflection\DocBlock\Description;
 use Symfony\Bridge\Doctrine\Types\UlidType;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Validator\Constraints\Choice;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
@@ -32,6 +31,7 @@ use Symfony\Component\Uid\Ulid;
         new Get(),
         new Get(routePrefix: '/public'),
         new Post(
+            routePrefix:            '/public',
             controller:             OrderAction::class,
             openapi:                new Operation(
                                         requestBody: new RequestBody(
@@ -47,18 +47,30 @@ use Symfony\Component\Uid\Ulid;
                                                                                           'delivery' => [
                                                                                               'type'       => 'object',
                                                                                               'properties' => [
-                                                                                                  'transportType' => ['type' => 'string', 'enum' => ['NOVA POSHTA'], 'example' => 'NOVA POSHTA'],
-                                                                                                  'address'       => ['type' => 'string', 'example' => '03127', 'description' => 'номер поштового відділення'],
+                                                                                                  'transportType' => [
+                                                                                                      'type'    => 'string',
+                                                                                                      'enum'    => ['NOVA POSHTA'],
+                                                                                                      'example' => 'NOVA POSHTA',
+                                                                                                  ],
+                                                                                                  'address'       => [
+                                                                                                      'type'        => 'string',
+                                                                                                      'example'     => '03127',
+                                                                                                      'description' => 'номер поштового відділення',
+                                                                                                  ],
                                                                                               ],
                                                                                           ],
                                                                                           'products' => [
                                                                                               'type'  => 'array',
                                                                                               'items' => [
                                                                                                   'properties' => [
-                                                                                                      'product' => ['type' => 'string',
-                                                                                                          'example' => '01HM19QGN8349WS3B1666S4K6G'],
-                                                                                                      'amount'  => ['type' => 'integer',
-                                                                                                          'example' => 1],
+                                                                                                      'product' => [
+                                                                                                          'type'    => 'string',
+                                                                                                          'example' => '01HM19QGN8349WS3B1666S4K6G',
+                                                                                                      ],
+                                                                                                      'amount'  => [
+                                                                                                          'type'    => 'integer',
+                                                                                                          'example' => 1,
+                                                                                                      ],
                                                                                                   ],
                                                                                               ],
                                                                                           ],
@@ -71,6 +83,7 @@ use Symfony\Component\Uid\Ulid;
                                     ),
             denormalizationContext: ['groups' => ['order.save']],
         ),
+        new Patch(controller: UpdateOrderAction::class, denormalizationContext: ['groups' => ['order.update']]),
     ],
 )]
 class Order
@@ -89,11 +102,34 @@ class Order
     private Collection $commodities;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['public.order.read'])]
+    #[Groups(['public.order.read', 'order.update'])]
+    #[Choice([
+        CommodityOperationType::CORRECTION->name,
+        CommodityOperationType::SOLD->name,
+        CommodityOperationType::RETURN->name,
+        CommodityOperationType::PREORDER->name,
+    ])]
+    #[ApiProperty(
+        description: "статус замовлення. При створенні покупцем присвоюється автоматично, при оновленні даних менеджером(адміністратором) може мати одне з константних значень", openapiContext: [
+        'type'    => 'string',
+        'example' => CommodityOperationType::CORRECTION->name,
+    ]
+    )]
     private ?string $status = null;
 
-    #[Groups(['order.save'])]
-    private array $products;
+    #[Groups(['order.save', 'order.update'])]
+    #[ApiProperty(
+        openapiContext: [
+            'type'  => 'array',
+            'items' => [
+                'properties' => [
+                    'product' => ['type' => 'string', 'example' => '01HM19QGN8349WS3B1666S4K6G'],
+                    'amount'  => ['type' => 'integer', 'example' => 1],
+
+                ],
+            ],
+        ])]
+    private array $products = [];
 
     #[ORM\OneToOne(mappedBy: 'customerOrder', cascade: ['persist', 'remove'])]
     #[Groups(['public.order.read'])]

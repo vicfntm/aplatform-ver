@@ -12,7 +12,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use App\DTO\ProductDto;
 
-class RelevantCommodityService
+class RelevantCommodityService implements CommodityDefiner
 {
 
     private EntityRepository $productRepository;

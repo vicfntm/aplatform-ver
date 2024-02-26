@@ -5,6 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Category;
 use App\Entity\Commodity;
 use App\Entity\Media;
+use App\Entity\Order;
 use App\Entity\Price;
 use App\Entity\Product;
 use App\Entity\User;
@@ -13,16 +14,35 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use App\Enums\CommodityOperationType;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Uid\Ulid;
 
 class AppFixtures extends Fixture
 {
 
-    public function __construct (private readonly UserPasswordHasherInterface $userPasswordHasherInterface)
+    public function __construct(private readonly UserPasswordHasherInterface $userPasswordHasherInterface)
     {
     }
 
     public function load(ObjectManager $manager): void
     {
+        $ts = [
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+            Ulid::fromString(Ulid::generate()),
+        ];
+
         /** CATEGORIES */
 
         $categories = [
@@ -38,23 +58,26 @@ class AppFixtures extends Fixture
                         'categoryName'  => 'Чоловічі вишиванки',
                         'isActive'      => true,
                         'products'      => [
-                            ['isActive'    => true,
-                             'title'       => 'Чоловіча вишиванка чорна',
-                             'description' => 'Чоловіча вишиванка чорного кольору',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Чоловіча вишиванка чорна',
+                                'description' => 'Чоловіча вишиванка чорного кольору',
                             ],
-                            ['isActive'    => true,
-                             'title'       => 'Чоловіча вишиванка біла',
-                             'description' => 'Чоловіча вишиванка білого кольору',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Чоловіча вишиванка біла',
+                                'description' => 'Чоловіча вишиванка білого кольору',
                             ],
-                            ['isActive'    => false,
-                             'title'       => 'Чоловіча вишиванка льняна',
-                             'description' => 'Чоловіча вишиванка із льону',
+                            [
+                                'isActive'    => false,
+                                'title'       => 'Чоловіча вишиванка льняна',
+                                'description' => 'Чоловіча вишиванка із льону',
                             ],
                         ],
                     ],
                     [
                         'level'         => 1,
-                        'categoryOrder' => 2,
+                        'categoryOrder' => 0,
                         'categoryName'  => 'Жіночі вишиванки',
                         'isActive'      => true,
                         'products'      => [
@@ -64,23 +87,73 @@ class AppFixtures extends Fixture
                                 'description' => 'Жіноча вишиванка із льону',
                                 'commodities' => [
                                     [
-                                        'operation' => CommodityOperationType::IMPORT->name,
-                                        'amount'    => 100,
-                                        'prices'    => [
+                                        'operation'          => CommodityOperationType::IMPORT->name,
+                                        'operationTimestamp' => $ts[6],
+                                        'amount'             => 100,
+                                        'prices'             => [
                                             ['price' => 1000],
                                             ['price' => 2000],
                                             ['price' => 3000],
                                         ],
-                                        'sales'     => [
-                                            ['operation' => CommodityOperationType::PREORDER->name, 'amount' => 5],
-                                            ['operation' => CommodityOperationType::PREORDER->name, 'amount' => 2],
-                                            ['operation' => CommodityOperationType::PREORDER->name, 'amount' => 3],
+                                        'sales'              => [
+                                             [
+                                                [
+                                                    'operation'          => CommodityOperationType::PREORDER->name,
+                                                    'amount'             => 5,
+                                                    'operationTimestamp' => $ts[0],
+                                                ],
+                                                [
+                                                    'operation'          => CommodityOperationType::PREORDER->name,
+                                                    'amount'             => 2,
+                                                    'operationTimestamp' => $ts[1],
+                                                ],
+                                                [
+                                                    'operation'          => CommodityOperationType::PREORDER->name,
+                                                    'amount'             => 3,
+                                                    'operationTimestamp' => $ts[2],
+                                                ],
+                                            ],
+                                             [
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 6,
+                                                     'operationTimestamp' => $ts[3],
+                                                 ],
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 4,
+                                                     'operationTimestamp' => $ts[4],
+                                                 ],
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 2,
+                                                     'operationTimestamp' => $ts[5],
+                                                 ],
+                                             ],
+                                             [
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 7,
+                                                     'operationTimestamp' => $ts[6],
+                                                 ],
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 8,
+                                                     'operationTimestamp' => $ts[7],
+                                                 ],
+                                                 [
+                                                     'operation'          => CommodityOperationType::PREORDER->name,
+                                                     'amount'             => 1,
+                                                     'operationTimestamp' => $ts[8],
+                                                 ],
+                                             ],
                                         ],
                                     ],
                                     [
-                                        'operation' => CommodityOperationType::IMPORT->name,
-                                        'amount'    => 50,
-                                        'prices'    => [
+                                        'operation'          => CommodityOperationType::IMPORT->name,
+                                        'operationTimestamp' => $ts[3],
+                                        'amount'             => 50,
+                                        'prices'             => [
                                             ['price' => 1700],
                                         ],
                                     ],
@@ -105,13 +178,37 @@ class AppFixtures extends Fixture
                                 ],
 
                             ],
-                            ['isActive'    => true,
-                             'title'       => 'Жіноча вишиванка біла',
-                             'description' => 'Жіноча вишиванка білого кольору',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Жіноча вишиванка біла',
+                                'description' => 'Жіноча вишиванка білого кольору',
+                                'commodities' => [
+                                    [
+                                        'operation'          => CommodityOperationType::IMPORT->name,
+                                        'operationTimestamp' => $ts[4],
+                                        'amount'             => 8,
+                                        'prices'             => [
+                                            ['price' => 17000],
+                                        ],
+
+                                    ],
+                                ],
                             ],
-                            ['isActive'    => true,
-                             'title'       => 'Жіноча вишиванка чорна',
-                             'description' => 'Жіноча вишиванка чорного кольору',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Жіноча вишиванка чорна',
+                                'description' => 'Жіноча вишиванка чорного кольору',
+                                'commodities' => [
+                                    [
+                                        'operation'          => CommodityOperationType::IMPORT->name,
+                                        'operationTimestamp' => $ts[5],
+                                        'amount'             => 25,
+                                        'prices'             => [
+                                            ['price' => 20000],
+                                        ],
+
+                                    ],
+                                ],
                             ],
                         ],
                     ],
@@ -131,13 +228,16 @@ class AppFixtures extends Fixture
                         'categoryName'  => 'Ігольниці тип 1',
                         'isActive'      => true,
                         'products'      => [
-                            ['isActive'    => true,
-                             'title'       => 'Ігольниця вишита хрестиком',
-                             'description' => 'Ігольниця вишита хрестиком вовною',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Ігольниця вишита хрестиком',
+                                'description' => 'Ігольниця вишита хрестиком вовною',
+
                             ],
-                            ['isActive'    => false,
-                             'title'       => 'Ігольниця вишита гладдю',
-                             'description' => 'Ігольниця вишита шовковими нитками',
+                            [
+                                'isActive'    => false,
+                                'title'       => 'Ігольниця вишита гладдю',
+                                'description' => 'Ігольниця вишита шовковими нитками',
                             ],
                         ],
                     ],
@@ -157,15 +257,25 @@ class AppFixtures extends Fixture
                         'categoryName'  => 'Прикраси круглі',
                         'isActive'      => true,
                         'products'      => [
-                            ['isActive'    => true,
-                             'title'       => 'Прикраса велика',
-                             'description' => 'Прикраса велика 20 см',
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Прикраса велика',
+                                'description' => 'Прикраса велика 20 см',
                             ],
-                            ['isActive' => true, 'title' => 'Прикраса мала', 'description' => 'Прикраса мала 10 см'],
+                            [
+                                'isActive'    => true,
+                                'title'       => 'Прикраса мала',
+                                'description' => 'Прикраса мала 10 см',
+                            ],
 
                         ],
                     ],
-                    ['level' => 1, 'categoryOrder' => 2, 'categoryName' => 'Прикраси квадратні', 'isActive' => true],
+                    [
+                        'level'         => 1,
+                        'categoryOrder' => 2,
+                        'categoryName'  => 'Прикраси квадратні',
+                        'isActive'      => true,
+                    ],
                 ],
             ],
             [
@@ -211,6 +321,7 @@ class AppFixtures extends Fixture
                                 $c = new Commodity();
                                 $c->setAmount($commodity['amount']);
                                 $c->setOperationType($commodity['operation']);
+                                $c->setOperationTimestamp($commodity['operationTimestamp']);
                                 $manager->persist($c);
                                 if (array_key_exists('prices', $commodity)) {
                                     // add prices
@@ -222,15 +333,20 @@ class AppFixtures extends Fixture
                                     }
                                 }
                                 if (array_key_exists('sales', $commodity)) {
-                                    foreach ($commodity['sales'] as $saleCommodity) {
-                                        $sc = new Commodity();
-                                        $sc->setOperationType($saleCommodity['operation']);
-                                        $sc->setAmount($saleCommodity['amount']);
-                                        $sc->setCommoditySource($c);
-                                        $sc->setProduct($p);
-                                        $manager->persist($sc);
+                                    foreach ($commodity['sales'] as $sale) {
+                                        $order = new Order();
+                                        foreach ($sale as $saleCommodity) {
+                                            $sc = new Commodity();
+                                            $sc->setOperationType($saleCommodity['operation']);
+                                            $sc->setAmount($saleCommodity['amount']);
+                                            $sc->setCommoditySource($c);
+                                            $sc->setProduct($p);
+                                            $sc->setOperationTimestamp($saleCommodity['operationTimestamp']);
+                                            $manager->persist($sc);
+                                            $order->addCommodity($sc);
+                                            $manager->persist($order);
+                                        }
                                     }
-
                                 }
                                 $p->addCommodity($c);
                             }
@@ -254,19 +370,19 @@ class AppFixtures extends Fixture
 
         $users = [
             [
-            'email' => 'admin@testuser.com',
-            'roles' => ['ROLE_USER', 'ROLE_ADMIN'],
-            'password' => 'secretP@sswd!1'
+                'email'    => 'admin@testuser.com',
+                'roles'    => ['ROLE_USER', 'ROLE_ADMIN'],
+                'password' => 'secretP@sswd!1',
             ],
             [
-                'email' => 'usualuser@testuser.com',
-                'roles' => ['ROLE_USER'],
-                'password' => 'secretP@sswd!2'
-            ]
+                'email'    => 'usualuser@testuser.com',
+                'roles'    => ['ROLE_USER'],
+                'password' => 'secretP@sswd!2',
+            ],
         ];
 
 
-        foreach ($users as $user){
+        foreach ($users as $user) {
             $ue = new User();
             $ue->setEmail($user['email']);
             $ue->setRoles($user['roles']);

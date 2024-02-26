@@ -16,6 +16,7 @@ use App\Convertors\CommodityHandler;
 use App\Convertors\CommodityStorage;
 use App\Enums\CommodityOperationType;
 use App\Repository\ProductRepository;
+use App\Service\CommodityCounter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -116,8 +117,9 @@ class Product
          */
         $commodityCollection = $this->commodities;
         $handler = new CommodityHandler();
-
-        foreach ($commodityCollection as $commodity) {
+        $lastCommodityActivitySet = (new CommodityCounter())->withLastCommoditySet($commodityCollection);
+        foreach ($lastCommodityActivitySet as $c) {
+            ['cmd' => $commodity] = $c;
             $price = $commodity->getPrice()->last();
             $storage = new CommodityStorage(
                 type:   $commodity->getOperationType(),

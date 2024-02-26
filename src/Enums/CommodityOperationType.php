@@ -8,4 +8,5 @@ enum CommodityOperationType
     case IMPORT;
     case PREORDER;
     case RETURN;
+    case CORRECTION;
 }

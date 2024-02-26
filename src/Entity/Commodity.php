@@ -132,6 +132,9 @@ class Commodity
     #[ORM\ManyToOne(inversedBy: 'commodities')]
     private ?Order $relatedOrder = null;
 
+    #[ORM\Column(type: 'ulid', nullable: true)]
+    private ?Ulid $OperationTimestamp = null;
+
     public function __construct()
     {
         $this->price = new ArrayCollection();
@@ -257,6 +260,18 @@ class Commodity
     public function setRelatedOrder(?Order $relatedOrder): static
     {
         $this->relatedOrder = $relatedOrder;
+
+        return $this;
+    }
+
+    public function getOperationTimestamp(): ?Ulid
+    {
+        return $this->OperationTimestamp;
+    }
+
+    public function setOperationTimestamp(?Ulid $OperationTimestamp): static
+    {
+        $this->OperationTimestamp = $OperationTimestamp;
 
         return $this;
     }

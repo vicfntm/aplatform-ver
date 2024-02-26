@@ -3,6 +3,8 @@
 
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+imports:
+  - {resource: 'services.php'}
 parameters:
 
 
@@ -20,6 +22,16 @@ services:
       public: true
     Symfony\Component\Uid\Command\InspectUuidCommand:
       public: true
+    order.commodity.update:
+      alias: App\Service\UpdateOrderCommodityService
+    order.commodity.create:
+      alias: App\Service\RelevantCommodityService
+    order.update:
+      alias: App\Service\UpdateOrderHandler
+    order.commodity.factory:
+      alias: App\Service\CommodityFactory
+    order.entity.updater:
+      alias: App\Service\OrderUpdater
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -42,8 +54,21 @@ services:
         public: true
         bind:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
-    App\Service\RelevantCommodityService:
-        public: true
+#    App\Service\RelevantCommodityService:
+#        public: true
+
+    App\Controller\OrderAction:
+      bind:
+#        App\Service\CommodityDefiner: '@order.commodity.create'
+        App\Service\OrderHandler: '@order.update'
+        App\Service\CFactory: '@order.commodity.factory'
+    App\Controller\UpdateOrderAction:
+      bind:
+        App\Service\OrderHandler: '@order.update'
+        App\Service\CFactory: '@order.commodity.factory'
+        App\Service\OrderFactory: '@order.entity.updater'
+#        App\Service\CommodityDefiner: '@order.commodity.create'
+
 #imports:
 #  - { resource: 'services.php' }
 

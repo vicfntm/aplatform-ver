@@ -37,6 +37,7 @@ class ProductRepository extends ServiceEntityRepository
         return $root->aggregate(commodities: $product->getCommodities());
     }
 
+
 //    /**
 //     * @return Product[] Returns an array of Product objects
 //     */
