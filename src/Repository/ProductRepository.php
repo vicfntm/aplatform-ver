@@ -38,6 +38,20 @@ class ProductRepository extends ServiceEntityRepository
     }
 
 
+    /**
+     * @return Product[] Returns an array of Product objects
+     */
+    public function findProductSet(array $productIds): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.id IN (:val)')
+            ->setParameter('val', $productIds)
+            ->orderBy('p.id', 'ASC')
+//            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+            ;
+    }
 //    /**
 //     * @return Product[] Returns an array of Product objects
 //     */

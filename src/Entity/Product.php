@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Post;
 use App\Controller\ProductAction;
 use App\Convertors\CommodityHandler;
 use App\Convertors\CommodityStorage;
+use App\DTO\AggregationDto;
 use App\Enums\CommodityOperationType;
 use App\Repository\ProductRepository;
 use App\Service\CommodityCounter;
@@ -67,7 +68,7 @@ class Product
         description: "не більше 255 символів",
         openapiContext: [
             'type' => 'string',
-            'maxLength' => 255
+            'maxLength' => 255,
         ]
     )]
     private ?string $title = null;
@@ -103,6 +104,7 @@ class Product
     )]
     private ?Category $category = null;
 
+
     public function __construct()
     {
         $this->commodities = new ArrayCollection();
@@ -123,7 +125,7 @@ class Product
             $price = $commodity->getPrice()->last();
             $storage = new CommodityStorage(
                 type:   $commodity->getOperationType(),
-                amount: $commodity->getAmount(),
+                amount: $this->ag->getAmount(),
                 id:     $commodity->getId(),
                 price:  $price ? $price->getPrice() : $price
             );
@@ -131,6 +133,16 @@ class Product
         }
 
         return $handler->operate();
+    }
+
+    private AggregationDto $ag;
+    public function withAggregationParams(AggregationDto $ag) : void
+    {
+        $this->ag = $ag;
+    }
+    public function getAParams () : AggregationDto
+    {
+        return $this->ag;
     }
 
     public function getId(): ?Ulid

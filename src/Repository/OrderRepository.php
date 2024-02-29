@@ -66,14 +66,33 @@ class OrderRepository extends ServiceEntityRepository implements LastCommoditySe
 
     public function findLastCommodities(): GroupDto
     {
-        $sql = 'select cmd.related_order_id, cmd.commodity_source_id, cmd.operation_timestamp, cmd.amount, cmd.operation_type, cmd.id, cmd.product_id, o.history  from (select * from ((select distinct ON (c.related_order_id, c.commodity_source_id) related_order_id, c.commodity_source_id, c.operation_timestamp, c.amount, c.operation_type, c.id, c.product_id from commodity c
-        where c.related_order_id IS NOT NULL
-        order by c.related_order_id, c.commodity_source_id, c.operation_timestamp desc)
-        union
-        select related_order_id, commodity_source_id, operation_timestamp, amount, operation_type, id, product_id from commodity
-        where related_order_id IS NULL) agg
-        order by agg.id, agg.operation_timestamp) cmd
-        left join "order" o on o.id = cmd.related_order_id';
+        $sql = 'select cmd.related_order_id,
+       cmd.commodity_source_id,
+       cmd.operation_timestamp,
+       cmd.amount,
+       cmd.operation_type,
+       cmd.id,
+       cmd.product_id,
+       o.history,
+       pr.category_id
+from (select *
+      from ((select distinct ON (c.related_order_id, c.commodity_source_id) related_order_id,
+                                                                            c.commodity_source_id,
+                                                                            c.operation_timestamp,
+                                                                            c.amount,
+                                                                            c.operation_type,
+                                                                            c.id,
+                                                                            c.product_id
+             from commodity c
+             where c.related_order_id IS NOT NULL
+             order by c.related_order_id, c.commodity_source_id, c.operation_timestamp desc)
+            union
+            select related_order_id, commodity_source_id, operation_timestamp, amount, operation_type, id, product_id
+            from commodity
+            where related_order_id IS NULL) agg
+      order by agg.id, agg.operation_timestamp) cmd
+         left join "order" o on o.id = cmd.related_order_id
+        left join "product" pr on pr.id = cmd.product_id';
         $conn = $this->getEntityManager()->getConnection();
 
         try {
@@ -88,12 +107,12 @@ class OrderRepository extends ServiceEntityRepository implements LastCommoditySe
                     operationType:      $e['operation_type'],
                     id:                 $e['id'],
                     productId:          $e['product_id'],
-                    history:            $e['history']
+                    history:            $e['history'],
+                    category:           $e['category_id'],
                 );
             }, $w));
 
             return $aggregation->groupData();
-
         } catch (DbalException $exception) {
             return new GroupDto([]);
         }

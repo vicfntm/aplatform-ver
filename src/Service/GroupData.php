@@ -25,8 +25,10 @@ final readonly class GroupData
         $byProduct = [];
         $byOrder = [];
         $orderHistory = [];
+        $category = [];
 
         foreach ($this->currentCommodities as $commodity) {
+            $category[$commodity->getCategory()][$commodity->getProductId()][] = $commodity;
             if ($commodity->getOperationType() == CommodityOperationType::IMPORT->name) {
                 $imports[$commodity->getProductId()][] = $commodity;
             } else {
@@ -36,7 +38,7 @@ final readonly class GroupData
             }
         }
 
-        return new GroupDto(imports: $imports, byProduct: $byProduct, byOrder: $byOrder, orderHistory: $orderHistory);
+        return new GroupDto(imports: $imports, byProduct: $byProduct, byOrder: $byOrder, orderHistory: $orderHistory, byCategory: $category);
     }
 
 

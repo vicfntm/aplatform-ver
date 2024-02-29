@@ -20,7 +20,7 @@ final readonly class CommodityDto
         private string $id,
         private string $productId,
         private ?string $history,
-
+        private string $category,
     ) {
     }
 
@@ -68,9 +68,16 @@ final readonly class CommodityDto
         return $this->history;
     }
 
+    public function getCategory(): string
+    {
+        return $this->category;
+    }
+
+
     public function getDeserializedHistory(): array
     {
         return is_null($this->history) ? [] : json_decode($this->history, associative: true);
     }
+
 
 }

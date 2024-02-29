@@ -32,6 +32,8 @@ services:
       alias: App\Service\CommodityFactory
     order.entity.updater:
       alias: App\Service\OrderUpdater
+    products.get.finder:
+      alias: App\Service\ProductFinder
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
@@ -56,6 +58,9 @@ services:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
 #    App\Service\RelevantCommodityService:
 #        public: true
+    App\Controller\ProductAction:
+      bind:
+        App\Service\Finder: '@products.get.finder'
 
     App\Controller\OrderAction:
       bind:

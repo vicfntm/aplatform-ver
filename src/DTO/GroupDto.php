@@ -16,12 +16,14 @@ final readonly class GroupDto
      * @param array $byProduct
      * @param array $byOrder
      * @param array $orderHistory
+     * @param array $byCategory
      */
     public function __construct(
         private array $imports = [],
         private array $byProduct = [],
         private array $byOrder = [],
-        private array $orderHistory = []
+        private array $orderHistory = [],
+        private array $byCategory = [],
     ) {
     }
 
@@ -30,6 +32,13 @@ final readonly class GroupDto
     {
         return $this->imports;
     }
+
+    public function getByCategory(): array
+    {
+        return $this->byCategory;
+    }
+
+
 
     public function getByProduct(): array
     {
